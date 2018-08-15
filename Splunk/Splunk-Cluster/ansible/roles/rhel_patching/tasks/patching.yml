@@ -1,0 +1,62 @@
+---
+  - name: "RHEL 7 Patching: Find YUM cache"
+    find:
+      paths: "/var/cache/yum"
+      patterns: "*"
+    become: True
+    become_method: sudo
+    register: cache_files_to_delete
+
+  - name: "RHEL 7 Patching: Clear Cache"
+    file: 
+      path: "{{ item.path }}"
+      state: absent
+    with_items: "{{ cache_files_to_delete.files }}"
+    become: True
+    become_method: sudo
+
+  - name: "Verify yum-utils are installed"
+    yum:
+      name: 'yum-utils'
+      state: latest
+    become: True
+    become_method: sudo
+
+  - name: "Upgrade all packages to latest version"
+    yum:
+      name: '*'
+      state: latest
+    become: True
+    become_method: sudo
+
+  - name: "Check to see if we need a reboot"
+    shell: KERNEL_NEW=$(rpm -q -last kernel | head -1 | awk '{print$1}' | sed 's/kernel-//'); KERNEL_NOW=$(uname -r); if [[ $KERNEL_NEW != $KERNEL_NOW ]]; then echo reboot_needed; else echo reboot_not_needed; fi
+    ignore_errors: True
+    changed_when: False
+    register: reboot_required
+
+  - name: "Output reboot_required"
+    debug:
+      var: reboot_required.stdout_lines
+
+  - name: "Reboot server"
+    shell: "sleep 5 && reboot"
+    async: 1
+    poll: 0
+    when: reboot_required.stdout == "reboot_needed"
+    become: True
+    become_method: sudo
+
+  - name: "Wait for reboot"
+    wait_for_connection:
+      connect_timeout: 20
+      sleep: 5
+      delay: 25
+      timeout: 500
+    when: reboot_required.stdout == "reboot_needed"
+
+  - name: "Cleanup unused kernels"
+    command: /bin/package-cleanup --oldkernels --count=1 -y
+    become: True
+    become_method: sudo
+    when: reboot_required.stdout == "reboot_needed"

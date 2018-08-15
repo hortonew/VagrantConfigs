@@ -1,0 +1,38 @@
+---
+# Verify environment at desired Splunk version
+
+# master
+- name: "Master Node(s)"
+  hosts: splunk_master
+  roles: 
+    - splunk_server_common
+
+# search
+- name: "Search Cluster(s)"
+  hosts: splunk_search
+  roles:
+    - splunk_server_common
+
+# indexers
+- name: "Indexing Cluster(s)"
+  hosts: splunk_indexers
+  roles:
+    - splunk_server_common
+
+# deployer
+- name: "Search Deployer"
+  hosts: splunk_search_deployer
+  roles:
+    - splunk_server_common
+
+# heavy forwarders
+- name: "Heavy Forwarders"
+  hosts: splunk_hf
+  roles:
+    - splunk_server_common
+
+# deployment servers
+- name: "Deployment Servers"
+  hosts: splunk_ds
+  roles:
+    - splunk_server_common

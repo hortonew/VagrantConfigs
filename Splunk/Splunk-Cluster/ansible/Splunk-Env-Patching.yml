@@ -1,0 +1,64 @@
+---
+# Verify Splunk server OSs are patched
+
+- name: "All server status"
+  hosts: splunk_servers
+  roles:
+    - verify_status
+
+# master
+- name: "Master Node(s)"
+  hosts: splunk_master
+  roles: 
+    - splunk_cm_maintenance_mode_enable
+    - rhel_patching
+    - verify_status
+    - verify_splunk_status
+
+# search
+- name: "Search Cluster(s)"
+  hosts: splunk_search
+  serial: 1
+  roles:
+    - rhel_patching
+    - verify_status
+    - verify_splunk_status
+
+# indexers
+- name: "Indexing Cluster(s)"
+  hosts: splunk_indexers
+  serial: 1
+  roles:
+    - rhel_patching
+    - verify_status
+    - verify_splunk_status
+
+# Master, 2nd time
+- name: "Master Node(s)"
+  hosts: splunk_master
+  roles:
+    - splunk_cm_maintenance_mode_disable
+
+# deployer
+- name: "Search Deployer"
+  hosts: splunk_search_deployer
+  roles:
+    - rhel_patching
+    - verify_status
+    - verify_splunk_status
+
+# heavy forwarders
+- name: "Heavy Forwarders"
+  hosts: splunk_hf
+  roles:
+    - rhel_patching
+    - verify_status
+    - verify_splunk_status
+
+# deployment servers
+- name: "Deployment Servers"
+  hosts: splunk_ds
+  roles:
+    - rhel_patching
+    - verify_status
+    - verify_splunk_status

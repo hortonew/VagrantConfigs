@@ -1,0 +1,232 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# Vagrantfile API/syntax version. Don't touch unless you know what you're doing!
+VAGRANTFILE_API_VERSION = "2"
+
+splunk_rpm="splunk-6.4.4-b53a5c14bb5e-linux-2.6-x86_64.rpm"
+
+# Keep all servers of the same ansible_group adjacent to each other
+splunk_cluster = [
+  { 
+    :description => 'Splunk Cluster Master',
+    :hostname => 'splm-01', 
+    :ip => '10.0.3.100', 
+    :memory => '512', 
+    :folders => ['rpms', 'splunk-license'], 
+    :scripts => ['common.sh', 'splunk-server.sh', 'master-install.sh'],
+    :ansible_group => 'splunk_master'
+  },
+  { 
+    :description => 'Splunk Cluster Peer (Indexer)',
+    :hostname => 'spli-01', 
+    :ip => '10.0.3.111', 
+    :memory => '2048', 
+    :folders => ['rpms'], 
+    :scripts => ['common.sh', 'splunk-server.sh', 'indexer-install.sh'],
+    :ansible_group => 'splunk_indexers'
+  },
+  { 
+    :description => 'Splunk Cluster Peer (Indexer)',
+    :hostname => 'spli-02', 
+    :ip => '10.0.3.112', 
+    :memory => '2048', 
+    :folders => ['rpms'], 
+    :scripts => ['common.sh', 'splunk-server.sh', 'indexer-install.sh'],
+    :ansible_group => 'splunk_indexers'
+  },
+  { 
+    :description => 'Splunk Clustered Search Head',
+    :hostname => 'spls-01', 
+    :ip => '10.0.3.121', 
+    :memory => '1024', 
+    :folders => ['rpms'], 
+    :scripts => ['common.sh', 'splunk-server.sh', 'searchhead-install.sh'],
+    :ansible_group => 'splunk_search'
+  },
+  { 
+    :description => 'Splunk Clustered Search Head',
+    :hostname => 'spls-02', 
+    :ip => '10.0.3.122', 
+    :memory => '1024', 
+    :folders => ['rpms'], 
+    :scripts => ['common.sh', 'splunk-server.sh', 'searchhead-install.sh'],
+    :ansible_group => 'splunk_search'
+  },
+  { 
+    :description => 'Splunk Clustered Search Head',
+    :hostname => 'spls-03', 
+    :ip => '10.0.3.123', 
+    :memory => '1024', 
+    :folders => ['rpms'], 
+    :scripts => ['common.sh', 'splunk-server.sh', 'searchhead-install.sh'],
+    :ansible_group => 'splunk_search'
+  },
+  { 
+    :description => 'Splunk Search Cluster Deployer',
+    :hostname => 'splh-01', 
+    :ip => '10.0.3.130', 
+    :memory => '512', 
+    :folders => ['rpms'], 
+    :scripts => ['common.sh', 'splunk-server.sh', 'searchdeployer-install.sh'],
+    :ansible_group => 'splunk_search_deployer'
+  },
+  { 
+    :description => 'Splunk Heavy Forwarder',
+    :hostname => 'splf-01', 
+    :ip => '10.0.3.141', 
+    :memory => '1024', 
+    :folders => ['rpms'], 
+    :scripts => ['common.sh', 'splunk-server.sh', 'heavyforwarder-install.sh'],
+    :ansible_group => 'splunk_hf'
+  },
+  { 
+    :description => 'Splunk Heavy Forwarder',
+    :hostname => 'splf-02', 
+    :ip => '10.0.3.142', 
+    :memory => '1024', 
+    :folders => ['rpms'], 
+    :scripts => ['common.sh', 'splunk-server.sh', 'heavyforwarder-install.sh'],
+    :ansible_group => 'splunk_hf'
+  },
+  { 
+    :description => 'Splunk Deployment Server',
+    :hostname => 'spld-01', 
+    :ip => '10.0.3.151', 
+    :memory => '512', 
+    :folders => ['rpms'], 
+    :scripts => ['common.sh', 'splunk-server.sh', 'deploymentserver-install.sh'],
+    :ansible_group => 'splunk_ds'
+  },
+  { 
+    :description => 'Splunk Deployment Server',
+    :hostname => 'spld-02', 
+    :ip => '10.0.3.152', 
+    :memory => '512', 
+    :folders => ['rpms'], 
+    :scripts => ['common.sh', 'splunk-server.sh', 'deploymentserver-install.sh'],
+    :ansible_group => 'splunk_ds'
+  },
+]
+
+ansible_servers = [
+  { 
+    :description => 'Ansible Config Management Server',
+    :hostname => 'ansible-1', 
+    :ip => '10.0.3.200',
+    :memory => '1024',
+    :folders => ['rpms', 'ansible'], 
+    :scripts => ['common.sh', 'ansible-install.sh'],
+    :ansible_group => 'ansible_servers'
+  },
+]
+
+proxy_servers = [
+  { 
+    :description => 'HAProxy Load Balancer',
+    :hostname => 'haproxy-1', 
+    :ip => '10.0.3.210',
+    :memory => '1024',
+    :scripts => ['common.sh', 'proxy-install.sh'],
+    :ansible_group => 'proxy_servers'
+  },
+]
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+  config.vm.box = "centos-7.3.virtualbox.box"
+  
+  # Splunk Cluster
+  splunk_cluster.each do | splunk_node |
+    config.vm.define splunk_node[:hostname] do | splunk |
+      splunk.vm.host_name = splunk_node[:hostname]
+
+      # Specs (memory/hostname)
+      splunk.vm.provider "virtualbox" do |vb|
+        vb.customize ["modifyvm", :id, "--memory", splunk_node[:memory]]
+        vb.customize ["modifyvm", :id, "--name", splunk_node[:hostname]]
+      end
+
+      # Network Configuration
+      splunk.vm.network "private_network", ip: splunk_node[:ip]
+
+      # Synced Folders
+      splunk_node[:folders].each do | folder |
+        splunk.vm.synced_folder "./" + folder, "/media/" + folder
+      end
+
+      # Disable default vagrant share
+      splunk.vm.synced_folder ".", "/vagrant", disabled: true
+
+      # Post-Install Provisioning Scripts
+      splunk_node[:scripts].each do | script |
+        splunk.vm.provision "shell", :path => script
+      end
+    end
+  end # end splunk configuration
+
+  # Load Balancing (Search Cluster, Deployment Servers, syslog, etc.)
+  proxy_servers.each do | proxy_node |
+    config.vm.define proxy_node[:hostname] do |proxy|
+      proxy.vm.host_name = proxy_node[:hostname]
+
+      proxy.vm.provider "virtualbox" do |vb|
+        vb.customize ["modifyvm", :id, "--memory", proxy_node[:memory]]
+        vb.customize ["modifyvm", :id, "--name", proxy_node[:hostname]]
+      end
+
+      proxy.vm.network "forwarded_port", guest: 443, host: 443, protocol: "tcp", auto_correct: true, id: "HTTPS"
+      proxy.vm.network "forwarded_port", guest: 80, host: 80, protocol: "tcp", auto_correct: true, id: "HTTP"
+
+      proxy.vm.network "private_network", ip: proxy_node[:ip]
+      proxy.vm.synced_folder ".", "/vagrant", disabled: true
+
+      # Post-Install Provisioning Scripts
+      proxy_node[:scripts].each do | script |
+        proxy.vm.provision "shell", :path => script
+      end
+    end
+  end # end proxy configuration
+
+  # Ansible
+  ansible_servers.each do | ansible_node |
+    config.vm.define ansible_node[:hostname] do |ansible|
+      ansible.vm.host_name = ansible_node[:hostname]
+
+      ansible.vm.provider "virtualbox" do |vb|
+        vb.customize ["modifyvm", :id, "--memory", ansible_node[:memory]]
+        vb.customize ["modifyvm", :id, "--name", ansible_node[:hostname]]
+      end
+
+      ansible.vm.network "private_network", ip: ansible_node[:ip]
+
+      # Synced Folders
+      ansible_node[:folders].each do | folder |
+        ansible.vm.synced_folder "./" + folder, "/media/" + folder
+      end
+
+      # Disable default vagrant share
+      ansible.vm.synced_folder ".", "/vagrant", disabled: true
+
+      # Create array of all host/ip combinations to pass to provisioning script
+      hosts = []
+      splunk_cluster.each do | splunk_node |
+        hosts.push(splunk_node[:ansible_group] + " " + splunk_node[:hostname] + " " + splunk_node[:ip])
+      end
+
+      ansible_servers.each do | ansible_node |
+        hosts.push(ansible_node[:ansible_group] + " " + ansible_node[:hostname] + " " + ansible_node[:ip])
+      end
+
+      proxy_servers.each do | proxy_node |
+        hosts.push(proxy_node[:ansible_group] + " " + proxy_node[:hostname] + " " + proxy_node[:ip])
+      end
+      # End array creation for parameters
+
+      # Post-Install Provisioning Scripts
+      ansible_node[:scripts].each do | script |
+        ansible.vm.provision "shell", :path => script, :args => hosts
+      end
+    end
+  end # end ansible configuration
+
+end # End vagrant configuration

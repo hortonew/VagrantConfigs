@@ -1,0 +1,9 @@
+---
+  - name: "Verify Splunk Status: Port 8089"
+    wait_for:
+      port: 8089
+      delay: 0
+      sleep: 5
+      timeout: 60
+      msg: "Timeout waiting for 8089 to respond"
+    register: port_check_splunkd

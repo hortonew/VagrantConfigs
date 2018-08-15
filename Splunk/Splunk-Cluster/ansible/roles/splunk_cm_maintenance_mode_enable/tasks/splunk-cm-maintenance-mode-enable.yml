@@ -1,0 +1,13 @@
+---
+
+  - name: "Put Splunk cluster into maintenance mode"
+    command: /opt/splunk/bin/splunk enable maintenance-mode --answer-yes -auth "admin:vagrant"
+    become: true
+    become_user: splunk
+    become_method: sudo
+    changed_when: False
+    ignore_errors: True
+    no_log: True
+    register: splunk_command_output
+
+  - debug: msg="{{ splunk_command_output.stdout }}"

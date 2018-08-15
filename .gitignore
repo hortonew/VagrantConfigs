@@ -2,3 +2,10 @@
 boxes/*
 .vagrant/
 */*console.log
+Demo/
+Splunk/precise32
+Splunk/vagrant-splunk/
+Splunk-Test-Environment
+Splunk/Splunk-Cluster/rpms/*
+Splunk/Splunk-Cluster/centos-7.3.virtualbox.box
+Splunk/Splunk-Cluster/splunk-license/Splunk.License

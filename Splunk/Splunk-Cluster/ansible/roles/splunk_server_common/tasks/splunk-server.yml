@@ -1,0 +1,45 @@
+---
+  - name: "Check if Splunk is installed"
+    stat: 
+      path: /opt/splunk/etc/splunk.version
+    become: true
+    become_user: root
+    register: splunk_version_file
+
+  - name: "Get Version of Installed Splunk RPM"
+    shell: "rpm -qa | grep splunk | /usr/bin/cut -d'-' -f2"
+    args:
+      warn: False
+    register: current_rpm
+    changed_when: False
+
+  - name: "Get Version of Desired Splunk RPM"
+    shell: "/usr/bin/echo '{{ splunk_rpm }}' | /usr/bin/cut -d'-' -f2"
+    args:
+      warn: False
+    register: var_rpm
+    changed_when: False
+
+  - name: "Set new fact if we already have the desired version of Splunk"
+    set_fact:
+      splunk_version_matched: true
+    when: current_rpm.stdout == var_rpm.stdout
+
+  - name: "If Splunk is installed and not at desired version: Stop it"
+    command: /opt/splunk/bin/splunk stop
+    become: true
+    become_user: splunk
+    when: splunk_version_file.stat.exists and splunk_version_matched is not defined
+
+  - name: "Verify Correct Splunk Version is Installed"
+    yum:
+      name: "/media/rpms/{{splunk_rpm}}"
+      state: present
+    become: true
+    when: splunk_version_matched is not defined
+
+  - name: "If Splunk was just installed/upgraded: Start it"
+    command: /opt/splunk/bin/splunk start --accept-license --answer-yes --no-prompt
+    become: true
+    become_user: splunk
+    when: splunk_version_matched is not defined
