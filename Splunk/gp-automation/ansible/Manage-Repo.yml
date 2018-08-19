@@ -1,0 +1,24 @@
+---
+
+# Ansible host: Should return repo_updated_status, a dictionary that should be passed to update_deployment_apps
+- name: "Update repo"
+  hosts: 127.0.0.1
+  connection: local
+  vars:
+    remote_git: "https://github.com"
+    local_git: "/opt/ansible/git"
+    repos: ["gp-app-1", "gp-app-2"]
+    branches: ["dev", "beta", "prod"]
+    git_user: "hortonew"
+
+  roles: 
+    - update_repos
+
+- name: "Update deployment app if change detected"
+  hosts: splunk_ds
+  vars:
+    local_git: "{{ hostvars['127.0.0.1']['local_git'] }}"
+    repo_update_dict: "{{ hostvars['127.0.0.1']['repo_updated_status'] }}"
+
+  roles:
+    - { role: update_deployment_apps, when: True in repo_update_dict.values() }

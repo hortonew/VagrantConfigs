@@ -1,0 +1,23 @@
+---
+
+- name: "Pull down dev repos"
+  git:
+    repo: "{{ remote_git }}/{{ git_user }}/{{ item[0] }}.git"
+    dest: "{{ local_git }}/{{ item[0] }}-{{ item[1] }}"
+    depth: 1
+    version: "{{ item[1] }}"
+  with_nested: 
+    - "{{ repos }}"
+    - "{{ branches }} "
+  register: repo_status
+
+- name: "Create status mapping"
+  set_fact:
+    repo_updated_status: "{{ repo_updated_status|default({}) | combine( {item.item[0] + '-' + item.item[1]: item.changed} ) }}"
+  with_items: "{{ repo_status.results }}"
+  no_log: True
+
+- name: "Set local_git fact to be used later"
+  set_fact:
+    local_git: "{{ local_git }}"
+  no_log: True

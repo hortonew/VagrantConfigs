@@ -1,0 +1,34 @@
+---
+
+- name: "Copy apps that have changed to deployment server"
+  synchronize:
+    src: "{{ local_git }}/{{ item.key }}"
+    dest: "/opt/splunk/etc/deployment-apps/"
+    rsync_opts:
+      - "--exclude=.git"
+      - "--exclude=README.md"
+      - "--exclude=*.log"
+    recursive: True
+    rsync_path: "sudo rsync"
+  when: item.value == True
+  with_dict: "{{ repo_update_dict }}"
+  become: no
+
+- name: "Verify file exists on remote machine with correct permissions"
+  file:
+    path: /opt/splunk/etc/deployment-apps/{{ item.key }}
+    owner: splunk
+    group: splunk
+    mode: "u=rwX,g=rX,o=rX"
+    recurse: true
+  when: item.value == True
+  with_dict: "{{ repo_update_dict }}"
+  become: true
+  become_method: sudo
+
+- name: "Reload deployment server"
+  command: /opt/splunk/bin/splunk reload deploy-server -auth admin:vagrant
+  become: true
+  become_user: splunk
+  become_method: sudo
+  no_log: True

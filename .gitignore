@@ -9,3 +9,14 @@ Splunk-Test-Environment
 Splunk/Splunk-Cluster/rpms/*
 Splunk/Splunk-Cluster/centos-7.3.virtualbox.box
 Splunk/Splunk-Cluster/splunk-license/Splunk.License
+Splunk/gp-automation/rpms/*
+Splunk/gp-automation/centos-7.3.virtualbox.box
+Splunk/gp-automation/splunk-license/Splunk.License
+Splunk/gp-automation/ansible/group_vars
+Splunk/gp-automation/ansible/roles/splunk_server_common/
+Splunk/gp-automation/*.sh
+Splunk/gp-automation/Vagrantfile
+Splunk/gp-automation/ansible/roles/verify-splunk-status/
+Splunk/gp-automation/ansible/roles/verify-status/
+Splunk/gp-automation/ansible/Splunk-C*
+Splunk/gp-automation/ansible/ansible.cfg

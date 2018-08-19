@@ -1,0 +1,30 @@
+[splunk_master]
+splm-01 ansible_host=10.0.4.100
+
+[splunk_indexers]
+spli-01 ansible_host=10.0.4.111
+spli-02 ansible_host=10.0.4.112
+
+[splunk_search]
+spls-01 ansible_host=10.0.4.121
+
+[splunk_hf]
+splf-01 ansible_host=10.0.4.141
+
+[splunk_ds]
+spld-01 ansible_host=10.0.4.151
+
+[ansible_servers]
+gp-ansible-1 ansible_host=10.0.4.200
+
+[splunk_servers:children]
+splunk_master
+splunk_indexers
+splunk_search
+splunk_hf
+splunk_ds
+
+[all:vars]
+ansible_ssh_user=vagrant
+ansible_ssh_pass=vagrant
+ansible_ssh_private_key_file=/home/vagrant/.ssh/id_rsa_passwordless
