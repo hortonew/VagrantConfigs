@@ -10,6 +10,7 @@ The ansible host pulls down the latest changes by branch, building out separate 
 
 In order to trigger changes to a branch for testing, I wrote a simple shell script to automate a simple feature addition to the dev branch of one of the apps.  This would add a log entry to a file and push the change to the remote dev branch.  The next time the playbook was called it would see a change and execute the automation.  These scripts aren't included in the repo, but look like:
 
+```
 cd gp-app-1
 git checkout -b auto-update-branch
 echo "New Commit" >> auto-update.log
@@ -19,6 +20,7 @@ git checkout dev
 git merge auto-update-branch
 git branch -d auto-update-branch
 git push origin dev:dev
+```
 
 
 ## Change in repo leads to pull down locally, triggering app push to deployment server(s)
