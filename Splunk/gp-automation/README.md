@@ -4,4 +4,4 @@ Ansible Roles/Plays to automate pulling from a git repo, and updating deployment
 
 ![alt text](images/Play-Run-Update-Apps-No-Change.png)
 
-![alt text](images/App-Status-Dashboard.png.png)
+![alt text](images/App-Status-Dashboard.png)
