@@ -13,6 +13,7 @@ splf-01 ansible_host=10.0.4.141
 
 [splunk_ds]
 spld-01 ansible_host=10.0.4.151
+spld-02 ansible_host=10.0.4.152
 
 [ansible_servers]
 gp-ansible-1 ansible_host=10.0.4.200
