@@ -1,6 +1,6 @@
 ---
 
-- name: "Pull down dev repos"
+- name: "Pull down repos, separated by branches"
   git:
     repo: "{{ remote_git }}/{{ git_user }}/{{ item[0] }}.git"
     dest: "{{ local_git }}/{{ item[0] }}-{{ item[1] }}"
