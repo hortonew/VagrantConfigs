@@ -32,6 +32,9 @@ git push origin dev:dev
 ## Dashboard utilizing internal and audit data to track app deployments to clients
 ![alt text](images/App-Status-Dashboard.png)
 
+## Architecture
+![alt text](images/architecture.png)
+
 
 ### Improvements on initial request
 
